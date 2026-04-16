@@ -7,11 +7,13 @@ from app.models.schemas import (
     BiomechanicalFeatures,
     FatigueInput,
     FatigueResult,
+    FeatureVector,
     FormFlags,
     FormThresholds,
     JointAngles,
     Landmark,
     PoseLandmarkItem,
+    PoseDetectionResponse,
     SetSnapshot,
 )
 from app.utils.angle_utils import calculate_angle
@@ -182,3 +184,100 @@ def build_feature_vector(frame_index: int, landmarks: List[Landmark]) -> Biomech
 def predict_risk(features: BiomechanicalFeatures) -> float:
     # TODO: joblib.load("model/model.pkl") → model.predict(feature_vector)
     return 0.0
+
+
+def _compute_fatigue_score(training_load: float, sleep_hours: float) -> float:
+    """load / sleep_hours, clamped to [0, 100]. Higher = more fatigued."""
+    return round(min(training_load / sleep_hours, 100.0), 4)
+
+
+def _compute_recovery_score(training_load: float, sleep_hours: float) -> float:
+    """sleep_hours / load, normalised to [0, 1]. Higher = better recovered."""
+    return round(min(sleep_hours / training_load, 1.0), 4)
+
+
+def _compute_form_decay_rate(sets: List[SetSnapshot]) -> Optional[float]:
+    """Mean per-set change in back_angle. Positive = worsening forward lean."""
+    readings = sorted(
+        [(s.set_index, s.back_angle) for s in sets if s.back_angle is not None],
+        key=lambda t: t[0],
+    )
+    if len(readings) < 2:
+        return None
+    deltas = [readings[i + 1][1] - readings[i][1] for i in range(len(readings) - 1)]
+    return round(sum(deltas) / len(deltas), 4)
+
+
+def compute_fatigue_metrics(payload: FatigueInput) -> FatigueResult:
+    fatigue_score  = _compute_fatigue_score(payload.training_load, payload.sleep_hours)
+    recovery_score = _compute_recovery_score(payload.training_load, payload.sleep_hours)
+    form_decay_rate = (
+        _compute_form_decay_rate(payload.previous_sets_data)
+        if payload.previous_sets_data
+        else None
+    )
+    logger.info(
+        "Fatigue — load=%.1f sleep=%.1fh fatigue=%.4f recovery=%.4f decay=%s",
+        payload.training_load, payload.sleep_hours, fatigue_score, recovery_score, form_decay_rate,
+    )
+    return FatigueResult(
+        fatigue_score=fatigue_score,
+        recovery_score=recovery_score,
+        form_decay_rate=form_decay_rate,
+    )
+
+
+def generate_feature_vector(
+    pose_data: PoseDetectionResponse,
+    fatigue_input: FatigueInput,
+) -> FeatureVector:
+    """
+    Combine pose angle output and fatigue inputs into a single flat,
+    ML-ready feature vector.
+
+    Parameters
+    ----------
+    pose_data : PoseDetectionResponse
+        Response from detect_pose() — provides knee_angle, hip_angle, back_angle.
+    fatigue_input : FatigueInput
+        training_load, sleep_hours, optional set history.
+
+    Returns
+    -------
+    FeatureVector
+        {
+            "knee_angle":      float | null,
+            "hip_angle":       float | null,
+            "back_angle":      float | null,
+            "fatigue_score":   float,
+            "recovery_score":  float,
+            "load":            float,
+            "form_decay_rate": float | null
+        }
+    """
+    angles = pose_data.angles
+
+    fatigue_score  = _compute_fatigue_score(fatigue_input.training_load, fatigue_input.sleep_hours)
+    recovery_score = _compute_recovery_score(fatigue_input.training_load, fatigue_input.sleep_hours)
+    form_decay_rate = (
+        _compute_form_decay_rate(fatigue_input.previous_sets_data)
+        if fatigue_input.previous_sets_data
+        else None
+    )
+
+    vector = FeatureVector(
+        knee_angle=angles.knee_angle if angles else None,
+        hip_angle=angles.hip_angle   if angles else None,
+        back_angle=angles.back_angle if angles else None,
+        fatigue_score=fatigue_score,
+        recovery_score=recovery_score,
+        load=fatigue_input.training_load,
+        form_decay_rate=form_decay_rate,
+    )
+
+    logger.info(
+        "FeatureVector — knee=%.1f hip=%.1f back=%.1f fatigue=%.4f recovery=%.4f load=%.1f decay=%s",
+        vector.knee_angle or 0.0, vector.hip_angle or 0.0, vector.back_angle or 0.0,
+        vector.fatigue_score, vector.recovery_score, vector.load, vector.form_decay_rate,
+    )
+    return vector
