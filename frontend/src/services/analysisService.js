@@ -216,7 +216,7 @@ export const analyzeMovement = async (file, context = {}, exerciseType = 'squat'
 
   // ── Use backend values if available ───────────────────────────
   const finalScore          = backendData?.score ?? 82;
-  const reps                = backendData?.feature_vector?.reps_detected ?? parseFloat(sessionContext?.reps) ?? 5;
+  const reps                = backendData?.feature_vector?.reps_detected || parseFloat(sessionContext?.reps) || 5;
   const riskLevel           = (backendData?.risk_level ?? 'Moderate').toUpperCase();
   const riskColor           = backendData?.risk_color ?? 'yellow';
   const reasonArray         = backendData?.injury_reasons ?? [];
@@ -357,7 +357,7 @@ export const analyzeMovement = async (file, context = {}, exerciseType = 'squat'
   );
 
   // ── Key issues: prefer backend, fall back to scored issues ─────
-  const keyIssues = backendData?.keyIssues ?? scoredIssues;
+  const keyIssues = backendData ? backendIssues : scoredIssues;
 
   // ── Compile final result ───────────────────────────────────────
   const finalResult = {
