@@ -4,112 +4,168 @@ function Dashboard() {
   const navigate = useNavigate();
 
   return (
-    <div className="min-h-screen bg-[#FDFDF7] text-zinc-900 p-6 md:p-12 font-sans selection:bg-zinc-200">
-      <div className="max-w-6xl mx-auto">
-        
-        {/* Header */}
-        <header className="flex flex-col md:flex-row md:justify-between md:items-end border-b border-zinc-200 pb-8 mb-12 gap-6">
-          <div>
-            <div className="flex items-center gap-2 mb-4">
-               <div className="w-4 h-4 bg-zinc-900 text-[#FDFDF7] flex items-center justify-center rounded-sm">
-                <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M13 10V3L4 14h7v7l9-11h-7z" /></svg>
-              </div>
-              <span className="font-semibold text-sm tracking-tight">Athlix</span>
+    <div className="min-h-screen bg-black text-white font-sans selection:bg-zinc-700 flex flex-col md:flex-row">
+      {/* Sidebar Navigation */}
+      <aside className="w-full md:w-72 border-b md:border-b-0 md:border-r border-zinc-900 p-8 flex flex-col justify-between">
+        <div>
+          <div 
+            className="flex items-center gap-3 mb-16 cursor-pointer"
+            onClick={() => navigate('/')}
+          >
+            <div className="w-6 h-6 bg-white text-black flex items-center justify-center rounded-sm">
+              <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M13 10V3L4 14h7v7l9-11h-7z" /></svg>
             </div>
-            <h1 className="text-3xl font-medium tracking-tight mb-2">Workspace</h1>
-            <p className="text-md text-zinc-500 font-light">Select a movement to analyze or view recent feedback.</p>
+            <span className="font-bold text-xl tracking-tight uppercase">Athlix</span>
+          </div>
+
+          <nav className="space-y-6">
+            <div>
+              <p className="text-xs font-bold tracking-[0.2em] text-zinc-600 uppercase mb-6">Workspace</p>
+              <ul className="space-y-4 font-medium text-sm tracking-wide">
+                <li className="text-white flex items-center gap-3">
+                  <span className="w-1.5 h-1.5 rounded-full bg-white"></span> Overview
+                </li>
+                <li className="text-zinc-600 hover:text-zinc-400 cursor-not-allowed transition flex items-center gap-3">
+                  <span className="w-1.5 h-1.5 rounded-full bg-transparent"></span> History
+                </li>
+                <li className="text-zinc-600 hover:text-zinc-400 cursor-not-allowed transition flex items-center gap-3">
+                  <span className="w-1.5 h-1.5 rounded-full bg-transparent"></span> Athletes
+                </li>
+              </ul>
+            </div>
+          </nav>
+        </div>
+
+        <div className="mt-12 hidden md:block border-t border-zinc-900 pt-8">
+          <p className="text-xs font-bold tracking-[0.2em] uppercase text-zinc-600">System Secure</p>
+        </div>
+      </aside>
+
+      {/* Main Workspace */}
+      <main className="flex-1 p-8 md:p-16">
+        <header className="flex flex-col md:flex-row md:justify-between md:items-end border-b border-zinc-900 pb-10 mb-12 gap-6">
+          <div>
+            <h1 className="text-5xl font-black tracking-tighter uppercase mb-4">Dashboard</h1>
+            <p className="text-lg text-zinc-500 font-light tracking-wide">Select a movement protocol to begin precision tracking.</p>
           </div>
           <button 
             onClick={() => navigate('/upload')}
-            className="px-6 py-3 bg-zinc-900 text-[#FDFDF7] font-medium rounded-sm hover:bg-zinc-800 transition w-full md:w-auto text-sm"
+            className="px-10 py-5 bg-white text-black font-bold uppercase tracking-[0.2em] text-xs hover:bg-zinc-200 transition shadow-2xl"
           >
-            Upload Video
+            New Analysis
           </button>
         </header>
 
-        <main className="grid lg:grid-cols-3 gap-16">
-          
-          {/* Main Content Area */}
+        <section className="grid lg:grid-cols-3 gap-16">
+          {/* Active Modules Map */}
           <div className="lg:col-span-2 space-y-12">
             <div>
-              <h2 className="text-lg font-medium text-zinc-900 mb-6">
-                Active Modules
-              </h2>
+              <div className="flex items-center justify-between mb-8">
+                <h2 className="text-xs font-bold tracking-[0.2em] text-white uppercase">Movement Architecture</h2>
+              </div>
               
               <div className="grid sm:grid-cols-2 gap-6">
-                {/* Squat Card */}
+                {/* Protocol: Squat */}
                 <div 
-                  className="group relative bg-white border border-zinc-200 rounded-sm p-8 hover:border-zinc-400 transition-colors cursor-pointer" 
+                  className="group relative bg-[#111] border border-zinc-800 p-8 hover:border-zinc-500 transition-colors cursor-pointer flex flex-col justify-between min-h-[320px]" 
                   onClick={() => navigate('/upload')}
                 >
-                  <div className="absolute top-6 right-6 flex items-center">
-                    <span className="flex h-1.5 w-1.5 rounded-full bg-zinc-800 mr-2"></span>
-                    <span className="text-zinc-500 text-[10px] font-medium uppercase tracking-wider">Available</span>
+                  <div className="flex justify-between items-start mb-6">
+                    <span className="text-[10px] font-bold tracking-widest border border-white/20 px-3 py-1 uppercase text-zinc-400">Protocol 01</span>
+                    <span className="flex items-center text-white text-[10px] font-bold uppercase tracking-wider">
+                      <span className="flex h-1.5 w-1.5 rounded-full bg-white mr-2 animate-pulse"></span>
+                      Active
+                    </span>
                   </div>
-                  <h3 className="text-xl font-medium text-zinc-900 mb-3 group-hover:text-zinc-600 transition">Squat Analysis</h3>
-                  <p className="text-zinc-500 mb-8 text-sm font-light leading-relaxed">
-                    Full-body biomechanical tracking. Detect depth, forward lean, and form decay.
-                  </p>
-                  <div className="flex items-center text-zinc-800 font-medium text-xs uppercase tracking-wide group-hover:translate-x-1 transition-transform">
-                    Start Analysis <span className="ml-2">→</span>
+                  
+                  <div>
+                    <h3 className="text-3xl font-black text-white uppercase tracking-tighter mb-4 group-hover:text-zinc-300 transition line-clamp-2">Gym:<br/>Squat</h3>
+                    <p className="text-zinc-500 text-sm font-light leading-relaxed mb-8">
+                      Full-body biomechanical tracking. Detecting depth, forward lean, and varus collapse under load.
+                    </p>
+                    <div className="flex items-center text-white font-bold text-xs uppercase tracking-[0.15em] group-hover:translate-x-2 transition-transform">
+                      Initiate <span className="ml-2">→</span>
+                    </div>
                   </div>
                 </div>
 
-                {/* Bowling Card */}
-                <div className="relative bg-[#FAF9F5] border border-zinc-200 p-8 rounded-sm">
-                  <div className="absolute top-6 right-6 flex items-center">
-                    <span className="text-zinc-400 text-[10px] font-medium uppercase tracking-wider">Demo / Beta</span>
+                {/* Protocol: Bowling */}
+                <div className="relative bg-[#050505] border border-zinc-900 p-8 flex flex-col justify-between min-h-[320px] overflow-hidden">
+                  <div className="absolute inset-0 bg-gradient-to-tr from-transparent via-transparent to-white/[0.02]"></div>
+                  <div className="relative z-10 flex justify-between items-start mb-6">
+                    <span className="text-[10px] font-bold tracking-widest border border-zinc-800 px-3 py-1 uppercase text-zinc-700">Protocol 02</span>
+                    <span className="text-zinc-700 text-[10px] font-bold uppercase tracking-wider">
+                      Locked
+                    </span>
                   </div>
-                  <h3 className="text-xl font-medium text-zinc-400 mb-3">Cricket Bowling</h3>
-                  <p className="text-zinc-400 mb-8 text-sm font-light leading-relaxed">
-                    Pace and spin kinematics. Run-up momentum, release angle, and front-foot contact.
-                  </p>
-                  <div className="flex items-center text-zinc-400 font-medium text-xs uppercase tracking-wide">
-                    Coming Soon
+                  
+                  <div className="relative z-10">
+                    <h3 className="text-3xl font-black text-zinc-700 uppercase tracking-tighter mb-4 line-clamp-2">Sports:<br/>Fast Bowler</h3>
+                    <p className="text-zinc-700 text-sm font-light leading-relaxed mb-8">
+                      Pace and spin kinematics. Run-up momentum, release angle, and front-foot contact forces.
+                    </p>
+                    <div className="flex items-center text-zinc-700 font-bold text-xs uppercase tracking-[0.15em]">
+                      Demo Preview
+                    </div>
                   </div>
                 </div>
               </div>
             </div>
-            
-            {/* Short Info Banner */}
-            <div className="bg-white border text-center border-zinc-200 p-8 rounded-sm text-sm font-light leading-relaxed text-zinc-600">
-              Athlix processes high-speed video through proprietary vision models. Keep your camera stable and ensure full body visibility for accurate kinematic extraction.
-            </div>
 
+            {/* Quick Upload Banner */}
+            <div 
+              onClick={() => navigate('/upload')}
+              className="bg-black border border-zinc-800 p-8 flex flex-col sm:flex-row items-center justify-between cursor-pointer hover:border-zinc-500 transition"
+            >
+               <div>
+                  <h3 className="text-white font-bold uppercase tracking-[0.15em] text-sm mb-2">Direct Upload</h3>
+                  <p className="text-zinc-500 text-xs font-light tracking-wide">Bypass protocol selection. Parse generic movement data instantly.</p>
+               </div>
+               <div className="mt-6 sm:mt-0 px-8 py-4 bg-[#111] border border-zinc-700 text-white font-bold uppercase text-[10px] tracking-widest hover:bg-white hover:text-black transition">
+                 Select File
+               </div>
+            </div>
+            
           </div>
 
-          {/* Right Sidebar Area */}
-          <div className="space-y-6">
-            <h2 className="text-lg font-medium text-zinc-900 mb-6 border-b border-zinc-200 pb-2">
-              Capabilities
-            </h2>
-            
-            <div className="space-y-6">
+          {/* Side Capabilities Panel */}
+          <div className="space-y-12">
+            <div>
+              <h2 className="text-xs font-bold tracking-[0.2em] text-white uppercase mb-8 border-b border-zinc-900 pb-4">
+                Engine Status
+              </h2>
               
-              <div>
-                <h4 className="text-zinc-900 font-medium text-sm mb-1">Pose Flaw Detection</h4>
-                <p className="text-zinc-500 text-sm font-light">Automatic detection of severe posture mistakes.</p>
-              </div>
+              <div className="space-y-10">
+                
+                <div className="flex items-start gap-5">
+                  <div className="mt-1 font-mono text-zinc-700 text-sm">01</div>
+                  <div>
+                    <h4 className="text-white font-bold text-xs tracking-[0.15em] uppercase mb-2">Pose Tracking</h4>
+                    <p className="text-zinc-500 text-sm font-light leading-relaxed">High-fidelity 3D extraction. Stable camera required for optimal joint accuracy.</p>
+                  </div>
+                </div>
 
-              <div>
-                <h4 className="text-zinc-900 font-medium text-sm mb-1">Form Decay Tracking</h4>
-                <p className="text-zinc-500 text-sm font-light">Monitor form degradation across all repetitions.</p>
-              </div>
+                <div className="flex items-start gap-5">
+                  <div className="mt-1 font-mono text-zinc-700 text-sm">02</div>
+                  <div>
+                    <h4 className="text-white font-bold text-xs tracking-[0.15em] uppercase mb-2">Decay Modeling</h4>
+                    <p className="text-zinc-500 text-sm font-light leading-relaxed">Status active. Monitoring technique degradation against initial baseline stability.</p>
+                  </div>
+                </div>
 
-              <div>
-                <h4 className="text-zinc-900 font-medium text-sm mb-1">Explainable Injury Risk</h4>
-                <p className="text-zinc-500 text-sm font-light">Correlate kinematic data with potential strain injuries.</p>
-              </div>
+                <div className="flex items-start gap-5">
+                  <div className="mt-1 font-mono text-zinc-700 text-sm">03</div>
+                  <div>
+                    <h4 className="text-white font-bold text-xs tracking-[0.15em] uppercase mb-2">Risk Heuristics</h4>
+                    <p className="text-zinc-500 text-sm font-light leading-relaxed">Correlating persistent angular deviations with statistical probability of strain.</p>
+                  </div>
+                </div>
 
-              <div>
-                <h4 className="text-zinc-900 font-medium text-sm mb-1">Coaching Feedback</h4>
-                <p className="text-zinc-500 text-sm font-light">Get precise cues instantly to fix your form.</p>
               </div>
-
             </div>
           </div>
-        </main>
-      </div>
+        </section>
+      </main>
     </div>
   );
 }
