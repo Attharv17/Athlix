@@ -253,6 +253,13 @@ async def analyze_video(file: UploadFile = File(...)):
             "knee_angle_mean": knee_mean,
             "reps_detected":   reps,
         }
+        
+        print("\n----- DEBUG PROCESS/FEATURE -----")
+        print(f"Number of frames processed: {frames_processed}")
+        print(f"Extracted Angles (min/max) -> knee: {knee_min}, hip: {hip_min}, back: {back_max}")
+        print(f"Feature Values: {feature_vector}")
+        print("---------------------------------\n")
+        
         logger.info("Processing new video — feature_vector: %s", feature_vector)
 
         # ML model receives only its trained 5 features

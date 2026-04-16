@@ -194,6 +194,9 @@ def run_pipeline(
             form_score = base_badness + std_penalty + avg_penalty - smoothness_reduction
             form_score = round(max(0.0, min(100.0, form_score)), 2)
             validated["form_score"] = form_score
+            validated["knee_std"] = knee_std
+            if len(hip_angles) > 0: validated["hip_std"] = round(float(np.std(np.array(hip_angles))), 2)
+            if len(back_angles) > 0: validated["back_std"] = round(float(np.std(np.array(back_angles))), 2)
 
             angle_stats.update({
                 "knee_mean": round(float(np.mean(arr)), 2),

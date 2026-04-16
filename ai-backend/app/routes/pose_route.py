@@ -34,7 +34,12 @@ async def detect_pose_endpoint(
         raise HTTPException(status_code=status.HTTP_422_UNPROCESSABLE_ENTITY, detail="Uploaded file is empty.")
 
     try:
-        return detect_pose(image_bytes)
+        response = detect_pose(image_bytes)
+        if response and getattr(response, "keypoints", None):
+            print("\n----- DEBUG POSE -----")
+            print(f"Keypoints Extracted: {len(response.keypoints)}")
+            print("----------------------\n")
+        return response
     except ValueError as exc:
         raise HTTPException(status_code=status.HTTP_422_UNPROCESSABLE_ENTITY, detail=str(exc)) from exc
     except Exception as exc:

@@ -121,6 +121,10 @@ def _validate_input(features: dict) -> dict:
         raise ValueError(f"form_decay must be 0-1")
     if validated["previous_injury"] not in (0, 1):
         raise ValueError(f"previous_injury must be 0 or 1")
+        
+    for k, v in features.items():
+        if k not in validated:
+            validated[k] = v
 
     return validated
 
@@ -218,7 +222,7 @@ def get_risk_score(
     # Blend: 35% ML model (generalisation) + 65% direct formula (form sensitivity)
     blended_score = float(np.clip(0.35 * model_score + 0.65 * direct_score, 0.0, 100.0))
 
-    print(f"[DEBUG] form_decay      : {features['form_decay']:.4f}  ({fd:.1f}/100)")
+    print(f"[DEBUG] form_decay      : {features.get('form_decay', 0):.4f}  ({fs:.1f}/100)")
     print(f"[DEBUG] direct_score    : {direct_score:.2f}")
     print(f"[DEBUG] model_score     : {model_score:.2f}")
     print(f"[DEBUG] blended_score   : {blended_score:.2f}")
@@ -230,6 +234,16 @@ def get_risk_score(
     final_score = float(np.clip(final_score, 0.0, 100.0))
 
     print(f"[DEBUG] final risk      : {final_score:.2f}")
+    
+    print("\n----- DEBUG -----")
+    print(f"Knee STD: {features.get('knee_std', 'N/A')}")
+    print(f"Hip STD: {features.get('hip_std', 'N/A')}")
+    print(f"Back STD: {features.get('back_std', 'N/A')}")
+    print(f"Form Score: {features.get('form_score', 'N/A')}")
+    print(f"Fatigue: {features.get('fatigue_index', 'N/A')}")
+    print(f"Recovery: {features.get('recovery_score', 'N/A')}")
+    print(f"Risk: {final_score}")
+    print("------------------\n")
 
     level = _classify_level(final_score)
 
