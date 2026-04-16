@@ -115,6 +115,38 @@ function Dashboard() {
               </div>
             </div>
 
+            {/* Wellness & Mobility */}
+            <div className="pt-12">
+              <div className="flex items-center justify-between mb-8 border-t border-zinc-900 pt-12">
+                <h2 className="text-xs font-bold tracking-[0.2em] text-[#32ade6] uppercase">Mobility & Wellness</h2>
+              </div>
+
+              <div className="grid sm:grid-cols-2 gap-6">
+                <div
+                  className="group relative bg-[#111] border border-zinc-800 p-8 hover:border-[#32ade6]/30 transition-colors cursor-pointer flex flex-col justify-between min-h-[320px]"
+                  onClick={() => navigate('/upload-assessment')}
+                >
+                  <div className="flex justify-between items-start mb-6">
+                    <span className="text-[10px] font-bold tracking-widest border border-white/20 px-3 py-1 uppercase text-zinc-400">Mobility 01</span>
+                    <span className="flex items-center text-[#32ade6] text-[10px] font-bold uppercase tracking-wider">
+                      <span className="flex h-1.5 w-1.5 rounded-full bg-[#32ade6] mr-2 animate-pulse"></span>
+                      Active
+                    </span>
+                  </div>
+
+                  <div>
+                    <h3 className="text-3xl font-black text-white uppercase tracking-tighter mb-4 group-hover:text-[#32ade6] transition line-clamp-2">Sit-to-Stand<br />Assessment</h3>
+                    <p className="text-zinc-500 text-sm font-light leading-relaxed mb-8">
+                      Check your balance and movement while standing up from a chair.
+                    </p>
+                    <div className="flex items-center text-white font-bold text-xs uppercase tracking-[0.15em] group-hover:translate-x-2 transition-transform">
+                      Start Assessment <span className="ml-2">→</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
             {/* Quick Upload Banner */}
             <div
               onClick={() => navigate('/upload')}

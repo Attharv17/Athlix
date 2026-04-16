@@ -326,6 +326,112 @@ export const EXERCISE_CONFIGS = {
       subtitle: "Body alignment",
     },
   },
+
+  // ═══════════════════════════════════════════════════════════════
+  // SIT-TO-STAND ASSESSMENT
+  // ═══════════════════════════════════════════════════════════════
+  sit_to_stand: {
+    displayName: "Sit-to-Stand Assessment",
+    description: "Check your balance and movement while standing up from a chair.",
+    usesWeight: false,
+
+    issueCatalog: [
+      {
+        id: 1,
+        issue: "Leaning too much forward",
+        baseProbability: 0.6,
+        baseSeverity: "Medium",
+        detail: "You are bending too much while standing up.",
+        fix: "Try keeping your chest more upright while rising.",
+        intensityScale: 0.0,
+        fatigueScale: 0.0,
+        flag: "excessive_forward_lean",
+        joints: ["hip", "back"],
+      },
+      {
+        id: 2,
+        issue: "Your knees are going inward",
+        baseProbability: 0.4,
+        baseSeverity: "Medium",
+        detail: "Your knees move toward each other when you stand up.",
+        fix: "Try to keep your knees pointing straight ahead.",
+        intensityScale: 0.0,
+        fatigueScale: 0.0,
+        flag: "knee_valgus",
+        joints: ["knee"],
+      },
+      {
+        id: 3,
+        issue: "You are losing balance slightly",
+        baseProbability: 0.3,
+        baseSeverity: "High",
+        detail: "Your weight shifted making you unsteady.",
+        fix: "Hold a chair or stand up more slowly and with control.",
+        intensityScale: 0.0,
+        fatigueScale: 0.0,
+        flag: "loss_of_balance",
+        joints: ["ankle", "hip"],
+      },
+      {
+        id: 4,
+        issue: "Standing up too fast",
+        baseProbability: 0.2,
+        baseSeverity: "Low",
+        detail: "You pushed up very quickly without full control.",
+        fix: "Use your leg muscles to rise smoothly and steadily.",
+        intensityScale: 0.0,
+        fatigueScale: 0.0,
+        flag: "jerky_movement",
+        joints: ["knee"],
+      },
+      {
+        id: 5,
+        issue: "Dropping back down",
+        baseProbability: 0.35,
+        baseSeverity: "High",
+        detail: "You didn't lower yourself gently when sitting back down.",
+        fix: "Try to sit down as softly as possible.",
+        intensityScale: 0.0,
+        fatigueScale: 0.0,
+        flag: "uncontrolled_descent",
+        joints: ["hip"],
+      },
+    ],
+
+    coachingMap: {
+      "Leaning too much forward": { action: "Keep Chest Up", cue: "Look straight ahead and stand tall.", target: "Posture" },
+      "Your knees are going inward": { action: "Straight Knees", cue: "Make sure your knees follow your toes.", target: "Joint safety" },
+      "You are losing balance slightly": { action: "Stay Steady", cue: "Feel your feet flat on the floor for balance.", target: "Balance" },
+      "Standing up too fast": { action: "Smooth Movement", cue: "Rise at a comfortable, steady pace.", target: "Control" },
+      "Dropping back down": { action: "Sit Softly", cue: "Lower yourself slowly instead of falling into the chair.", target: "Leg strength" },
+    },
+
+    correctionPose: {
+      original: {
+        shoulder: { x: 38, y: 30 },
+        hip:      { x: 36, y: 55 },
+        knee:     { x: 30, y: 65 },
+        ankle:    { x: 28, y: 88 },
+      },
+      corrected: {
+        shoulder: { x: 40, y: 25 },
+        hip:      { x: 38, y: 55 },
+        knee:     { x: 30, y: 65 },
+        ankle:    { x: 28, y: 88 },
+      },
+      limbChain: [
+        ["shoulder", "hip"],
+        ["hip", "knee"],
+        ["knee", "ankle"],
+      ],
+      labels: {
+        excessive_forward_lean: { label: "Chest kept up", joint: "shoulder" },
+        loss_of_balance: { label: "Better balance", joint: "hip" },
+        knee_valgus: { label: "Knees straight", joint: "knee" },
+      },
+      subtitle: "Standing posture",
+    },
+  },
 };
 
 /** Convenience: get config or fallback to squat */

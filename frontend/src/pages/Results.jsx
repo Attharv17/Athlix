@@ -247,9 +247,10 @@ function Results() {
 
 
         {/* ─── Personalized Intensity Load (Derived) ───────────── */}
-        <FadeSection delay={150}>
-          <div className="bg-[#1c1c1e] rounded-[32px] p-8 flex flex-col gap-6 relative overflow-hidden border border-white/5">
-            <div className="absolute top-0 left-0 w-2 h-full bg-gradient-to-b from-[#32ade6] to-[#af52ff]" />
+        {mockData.exerciseType !== 'sit_to_stand' && (
+          <FadeSection delay={150}>
+            <div className="bg-[#1c1c1e] rounded-[32px] p-8 flex flex-col gap-6 relative overflow-hidden border border-white/5">
+              <div className="absolute top-0 left-0 w-2 h-full bg-gradient-to-b from-[#32ade6] to-[#af52ff]" />
 
             <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
               <div>
@@ -292,6 +293,7 @@ function Results() {
 
           </div>
         </FadeSection>
+        )}
 
         {/* ─── Highlights / Structural Flaws (List layout) ───────── */}
         <FadeSection delay={200}>

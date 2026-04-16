@@ -38,7 +38,17 @@ function Analysis() {
 
     // Auto-navigate to results
     const redirectTimer = setTimeout(() => {
-      navigate('/results');
+      const dataStr = localStorage.getItem('temp_analysis');
+      let targetRoute = '/results';
+      if (dataStr) {
+        try {
+          const data = JSON.parse(dataStr);
+          if (data.exerciseType === 'sit_to_stand') {
+            targetRoute = '/sit-stand-results';
+          }
+        } catch (e) { }
+      }
+      navigate(targetRoute);
     }, 5000);
 
     return () => {

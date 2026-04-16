@@ -8,6 +8,8 @@ import Results from "./pages/Results";
 import Navbar from "./components/Navbar";
 import Signup from "./pages/Signup";
 import Profile from "./pages/Profile";
+import UploadAssessment from "./pages/UploadAssessment";
+import SitStandResults from "./pages/SitStandResults";
 
 function App() {
   return (
@@ -19,8 +21,10 @@ function App() {
         <Route path="/dashboard" element={<Dashboard />} />
         <Route path="/profile" element={<Profile />} />
         <Route path="/upload" element={<Upload />} />
+        <Route path="/upload-assessment" element={<UploadAssessment />} />
         <Route path="/analysis" element={<Analysis />} />
         <Route path="/results" element={<Results />} />
+        <Route path="/sit-stand-results" element={<SitStandResults />} />
         <Route path="/signup" element={<Signup />} />
       </Routes>
     </BrowserRouter>

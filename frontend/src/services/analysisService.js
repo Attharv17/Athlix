@@ -119,6 +119,13 @@ function generateCoachingTips(coachingMap, issues, relativeIntensity, recoveryMu
 // ─── Summary generator ────────────────────────────────────────────
 function generateSummary(exerciseDisplayName, issues, relativeIntensity, overallScore) {
   const issueNames = issues.map(i => i.issue.toLowerCase()).join(', ');
+  
+  if (exerciseDisplayName === "Sit-to-Stand Assessment") {
+    if (overallScore >= 85) return 'Good control and balance. Your movement is very stable.';
+    if (overallScore >= 70) return `Needs improvement in stability. Keep an eye on: ${issueNames}.`;
+    return `Try slower and more controlled movement. Focus heavily on: ${issueNames}.`;
+  }
+
   const loadDesc = relativeIntensity > 0.85 ? 'heavy' : relativeIntensity > 0.65 ? 'moderate' : 'light';
   const qualityDesc = overallScore >= 85 ? 'good' : overallScore >= 70 ? 'okay but declining' : 'breaking down';
 
@@ -234,7 +241,7 @@ export const analyzeMovement = async (file, context = {}, exerciseType = 'squat'
   const movementVelocity = backendData?.movementVelocity
     ?? (realDisplacementMeters / timeSeconds).toFixed(2);
 
-  let velocityClassification = backendData?.velocityClassification ?? 'Hypertrophy';
+  let velocityClassification = backendData?.velocityClassification ?? 'Muscle Building';
   let velocityFactor = 1.0;
   if (!backendData) {
     const v = parseFloat(movementVelocity);
@@ -341,17 +348,21 @@ export const analyzeMovement = async (file, context = {}, exerciseType = 'squat'
 
   // ── Insight ────────────────────────────────────────────────────
   if (!backendData) {
-    explanationInsight = 'Good form with a safe amount of weight.';
-    if (movementRiskIndex >= 75) {
-      if (recoveryMultiplier > 1.2) {
-        explanationInsight = 'High risk of injury because you are not fully rested.';
-      } else if (intensityMultiplier > 0.64) {
-        explanationInsight = 'Your form is breaking down because the weight is too heavy.';
-      } else {
-        explanationInsight = 'Your form is off even with a moderate weight. Focus on your technique.';
+    if (exerciseType === 'sit_to_stand') {
+      explanationInsight = overallScore >= 80 ? 'Your movement looks very stable and controlled.' : 'Slight lack of balance detected. Keep practicing.';
+    } else {
+      explanationInsight = 'Good form with a safe amount of weight.';
+      if (movementRiskIndex >= 75) {
+        if (recoveryMultiplier > 1.2) {
+          explanationInsight = 'High risk of injury because you are not fully rested.';
+        } else if (intensityMultiplier > 0.64) {
+          explanationInsight = 'Your form is breaking down because the weight is too heavy.';
+        } else {
+          explanationInsight = 'Your form is off even with a moderate weight. Focus on your technique.';
+        }
+      } else if (movementRiskIndex >= 40) {
+        explanationInsight = 'Some slight form changes detected. Be careful adding weight.';
       }
-    } else if (movementRiskIndex >= 40) {
-      explanationInsight = 'Some slight form changes detected. Be careful adding weight.';
     }
   }
 
@@ -395,7 +406,7 @@ export const analyzeMovement = async (file, context = {}, exerciseType = 'squat'
     movementRiskIndex: backendData ? Math.round(100 - finalScore) : movementRiskIndex,
     riskLabel: backendData ? riskLevel.charAt(0).toUpperCase() + riskLevel.slice(1).toLowerCase() : riskLabel,
     riskColor: backendData ? riskColor : 'yellow',
-    explanationInsight: explanationInsight ?? (backendData?.injury_reasons?.[0] || 'Good form with this weight.'),
+    explanationInsight: explanationInsight ?? (backendData?.injury_reasons?.[0] || (exerciseType === 'sit_to_stand' ? 'Looks stable.' : 'Good form with this weight.')),
     movementVelocity,
     velocityClassification,
     loadScore,

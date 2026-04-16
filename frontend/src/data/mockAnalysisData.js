@@ -35,7 +35,7 @@ export const mockAnalysisData = {
   ],
   summary: "You did a good job keeping your back straight and coming down slowly, but you didn't go quite low enough. Your knees also caved inward slightly, which could mean you need to strengthen your outer hips and improve your ankle flexibility.",
   movementVelocity: "0.68",
-  velocityClassification: "Hypertrophy",
+  velocityClassification: "Muscle Building",
   loadScore: "10.7",
   relativePct: "71",
   movementRiskIndex: 38,
