@@ -261,19 +261,50 @@ def analyze_video_form(video_path: str) -> float:
         logger.warning("analyze_video_form: could not open '%s'; defaulting to 50", video_path)
         return 50.0
 
+    total_frames = int(cap.get(cv2.CAP_PROP_FRAME_COUNT))
+    fps = cap.get(cv2.CAP_PROP_FPS) or 30.0
+    _MAX_ANALYSIS = 30
+    skip_rate = max(total_frames // _MAX_ANALYSIS, 1)
+
     frames_read = 0
+    processed_count = 0
     try:
         with PoseService() as svc:
-            while frames_read < _MAX_ANALYSIS_FRAMES:
+            while True:
                 ret, frame = cap.read()
-                if not ret:
+                if not ret or processed_count >= _MAX_ANALYSIS:
                     break
 
                 frames_read += 1
-                logger.info("Frame %d processed", frames_read)
+                if frames_read % skip_rate != 0:
+                    continue
 
+                processed_count += 1
+
+                # Visual Debug Step: CV2 Draw and Imshow
                 rgb = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
                 landmarks = svc.process_frame(rgb)
+                
+                # Visual debug drawing
+                temp_bgr = frame.copy()
+                if landmarks:
+                    from mediapipe.python.solutions import drawing_utils, pose as mp_pose
+                    # Manually recreating landmark struct to draw
+                    # (In a real app, use the svc raw result, here we just do a quick debug display if needed)
+                    # We'll just print first keypoints instead for server-safe visual debug
+                    if processed_count == 1:
+                        print(f"\n[DEBUG] POSE DETECTED FIRST FRAME: {len(landmarks)} keypoints")
+                        print(f"[DEBUG] First point: {landmarks[0].name} -> ({landmarks[0].x}, {landmarks[0].y})")
+                        
+                    cv2.putText(temp_bgr, "Pose Detected", (50, 50), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 255, 0), 2)
+                    try:
+                        cv2.imshow("Video Debug", temp_bgr)
+                        cv2.waitKey(1)
+                    except:
+                        pass # Ignore if headless
+                else:
+                    if processed_count == 1: print("\n[DEBUG] NO POSE DETECTED")
+
                 if not landmarks:
                     continue
 
@@ -309,11 +340,20 @@ def analyze_video_form(video_path: str) -> float:
                     (knee.x,     knee.y,     knee.z),
                 )
                 
+                # Check alignment: if knee moves inward relative to ankle (x-coord drift)
+                # left side typically means knee.x is greater than ankle.x if collapsing inward
+                # We'll penalize the sheer horizontal distance difference for instability
+                align_penalty = 0
+                drift = abs(knee.x - ankle.x)
+                if drift > 0.05:
+                    align_penalty = drift * 50.0  # arbitrary scale for penalty
+
                 FRAME_ANGLES_HISTORY.append({
                     "frame": frames_read,
                     "knee": angle_knee,
                     "hip": angle_hip,
-                    "back": angle_back
+                    "back": angle_back,
+                    "align_penalty": align_penalty,
                 })
                 
                 angles.append(angle_knee)

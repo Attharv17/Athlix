@@ -200,7 +200,7 @@ def get_risk_score(
     #   training_load: 1-10         → × 10
     #   recovery_score: 0-100       → already in range
     # ------------------------------------------------------------------
-    fs = features.get("form_score", features["form_decay"] * 100.0)
+    fs = features.get("form_score", features.get("form_decay", 0) * 100.0)
     fi = features["fatigue_index"] * 10.0    # 0-100
     ld = features["training_load"] * 10.0    # 0-100
     rs = features["recovery_score"]          # 0-100
@@ -213,19 +213,14 @@ def get_risk_score(
     )
     
     if fs > 60:
-        direct_score *= 1.2
-    if fs < 30:
-        direct_score *= 0.8
+        direct_score *= 1.3
+    elif fs < 30:
+        direct_score *= 0.7
         
     direct_score = float(np.clip(direct_score, 0.0, 100.0))
 
     # Blend: 35% ML model (generalisation) + 65% direct formula (form sensitivity)
     blended_score = float(np.clip(0.35 * model_score + 0.65 * direct_score, 0.0, 100.0))
-
-    print(f"[DEBUG] form_decay      : {features.get('form_decay', 0):.4f}  ({fs:.1f}/100)")
-    print(f"[DEBUG] direct_score    : {direct_score:.2f}")
-    print(f"[DEBUG] model_score     : {model_score:.2f}")
-    print(f"[DEBUG] blended_score   : {blended_score:.2f}")
 
     final_score, delta, flags = _apply_fusion(blended_score, features)
     
@@ -233,16 +228,15 @@ def get_risk_score(
     final_score += random.uniform(-3.0, 3.0)
     final_score = float(np.clip(final_score, 0.0, 100.0))
 
-    print(f"[DEBUG] final risk      : {final_score:.2f}")
-    
     print("\n----- DEBUG -----")
+    print(f"Number of frames: {features.get('num_frames', 'N/A')}")
     print(f"Knee STD: {features.get('knee_std', 'N/A')}")
     print(f"Hip STD: {features.get('hip_std', 'N/A')}")
     print(f"Back STD: {features.get('back_std', 'N/A')}")
-    print(f"Form Score: {features.get('form_score', 'N/A')}")
-    print(f"Fatigue: {features.get('fatigue_index', 'N/A')}")
-    print(f"Recovery: {features.get('recovery_score', 'N/A')}")
-    print(f"Risk: {final_score}")
+    print(f"Knee angle range (max-min): {features.get('range_knee', 'N/A')}")
+    print(f"Frame-to-frame diff: {features.get('diff_score', 'N/A')}")
+    print(f"Form Score: {fs}")
+    print(f"Risk: {final_score:.2f}")
     print("------------------\n")
 
     level = _classify_level(final_score)

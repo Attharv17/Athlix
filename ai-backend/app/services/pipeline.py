@@ -181,32 +181,47 @@ def run_pipeline(
         if len(knee_angles) > 0:
             arr = np.array(knee_angles)
             knee_min = round(float(np.min(arr)), 2)
+            knee_max = round(float(np.max(arr)), 2)
             knee_std = round(float(np.std(arr)), 2)
             
-            smoothness_score = round(1.0 / (knee_std + 1e-6), 2)
+            # 1. Angle variation: std_dev
+            std_dev = knee_std
             
-            # calculate custom form_score (0-100) where higher means WORSE form
-            avg_penalty = sum(20 if a < 60 else (10 if a < 90 else 0) for a in knee_angles) / len(knee_angles)
-            base_badness = 0.0
-            std_penalty = knee_std * 2.0
-            smoothness_reduction = min(smoothness_score * 5.0, 15.0)
+            # 2. Angle range: max - min
+            range_knee = knee_max - knee_min
             
-            form_score = base_badness + std_penalty + avg_penalty - smoothness_reduction
+            # 3. Movement smoothness: mean(abs(diff(angle)))
+            diffs = np.abs(np.diff(arr))
+            diff_score = round(float(np.mean(diffs)), 2) if len(diffs) > 0 else 0.0
+            
+            # 4. Alignment check inward
+            align_vals = [f.get("align_penalty", 0) for f in FRAME_ANGLES_HISTORY]
+            alignment_penalty = round(sum(align_vals), 2)
+            
+            # Compute new form score
+            form_score = (std_dev * 50.0) + (range_knee * 2.0) + (diff_score * 30.0) + alignment_penalty
             form_score = round(max(0.0, min(100.0, form_score)), 2)
+            
             validated["form_score"] = form_score
             validated["knee_std"] = knee_std
+            validated["range_knee"] = range_knee
+            validated["diff_score"] = diff_score
+            validated["num_frames"] = len(FRAME_ANGLES_HISTORY)
             if len(hip_angles) > 0: validated["hip_std"] = round(float(np.std(np.array(hip_angles))), 2)
             if len(back_angles) > 0: validated["back_std"] = round(float(np.std(np.array(back_angles))), 2)
+        else:
+            print("NO POSE DETECTED")
+            raise ValueError("No pose detected in the video")
 
-            angle_stats.update({
-                "knee_mean": round(float(np.mean(arr)), 2),
-                "knee_std": knee_std,
-                "knee_min": knee_min,
-                "knee_max": round(float(np.max(arr)), 2),
-                "depth_score": knee_min,
-                "smoothness_score": smoothness_score,
-                "form_score": form_score,
-            })
+        angle_stats.update({
+            "knee_mean": round(float(np.mean(arr)), 2),
+            "knee_std": knee_std,
+            "knee_min": knee_min,
+            "knee_max": knee_max,
+            "depth_score": knee_min,
+            "smoothness_score": round(1.0 / (knee_std + 1e-6), 2),
+            "form_score": form_score,
+        })
         if len(hip_angles) > 0:
             arr = np.array(hip_angles)
             angle_stats.update({
