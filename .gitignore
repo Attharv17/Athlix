@@ -35,6 +35,7 @@ ENV/
 *.onnx
 *.csv
 *.dat
+*.mp4
 
 # ==========================================
 # Flutter / Dart (Fl_chart)
