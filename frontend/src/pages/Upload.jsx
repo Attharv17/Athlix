@@ -9,16 +9,13 @@ function Upload() {
   const [selectedFile, setSelectedFile] = useState(null);
   const [movementType, setMovementType] = useState('squat');
 
-  const [isAnalyzing, setIsAnalyzing] = useState(false);
-  const [analysisResult, setAnalysisResult] = useState(null);
-
   const [trainingLoad, setTrainingLoad] = useState(5);
   const [sleepHours, setSleepHours] = useState(8);
   const [isProcessing, setIsProcessing] = useState(false);
-  const [results, setResults] = useState(null);
   const [error, setError] = useState(null);
 
   const [isDragOver, setIsDragOver] = useState(false);
+
 
 
   const handleFileChange = (e) => {
@@ -54,7 +51,6 @@ function Upload() {
   };
 
   const resetAnalysis = () => {
-    setResults(null);
     clearFile();
     setError(null);
   };
@@ -65,12 +61,11 @@ function Upload() {
     setError(null);
 
     try {
-      const data = await analyzeVideo(selectedFile);
-      if (data.error) {
-        setError(data.error);
-      } else {
-        setResults(data);
-      }
+      // Trigger the analysis — the backend/mock service processes the file.
+      // On success, navigate to the cinematic Analysis screen which
+      // auto-redirects to the dedicated Results page.
+      await analyzeVideo(selectedFile);
+      navigate('/analysis');
     } catch (err) {
       setError(err.message);
     } finally {
@@ -93,84 +88,6 @@ function Upload() {
     );
   }
 
-  // ----- Results View -----
-  if (results) {
-    return (
-      <div className="min-h-screen bg-black text-white p-6 md:p-16 font-sans selection:bg-zinc-700">
-        <div className="max-w-7xl mx-auto">
-          <header className="flex items-center justify-between border-b border-zinc-900 pb-10 mb-16">
-            <button onClick={resetAnalysis} className="text-[10px] font-bold tracking-[0.2em] uppercase text-zinc-500 hover:text-white transition flex items-center group">
-              <span className="mr-4 group-hover:-translate-x-1 transition-transform">←</span> Return to Input
-            </button>
-            <div className="flex items-center gap-3">
-              <div className="w-4 h-4 bg-white text-black flex items-center justify-center rounded-sm">
-                <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M13 10V3L4 14h7v7l9-11h-7z" /></svg>
-              </div>
-            </div>
-          </header>
-
-          <div>
-            <h1 className="text-5xl font-black tracking-tighter uppercase mb-2">Analysis Terminal</h1>
-            <p className="text-zinc-500 font-light tracking-wide text-lg mb-12">Kinematic parsing complete.</p>
-          </div>
-
-          <div className="grid md:grid-cols-2 gap-px bg-zinc-900 border border-zinc-900 overflow-hidden">
-
-            {/* Feature Vector Output */}
-            <div className="p-12 bg-[#050505]">
-              <h2 className="text-[10px] uppercase tracking-[0.2em] font-bold text-zinc-600 border-b border-zinc-900 pb-6 mb-8 flex items-center">
-                <span className="text-white mr-4">01 //</span> Biomechanics & Fatigue
-              </h2>
-              {results.feature_vector ? (
-                <div className="space-y-6 text-sm">
-                  {Object.entries(results.feature_vector).map(([key, val]) => (
-                    <div key={key} className="flex justify-between items-center border-b border-zinc-900/50 pb-2">
-                      <span className="text-zinc-500 font-mono text-[10px] tracking-widest uppercase">{key.replace(/_/g, ' ')}</span>
-                      <span className="text-white font-mono text-xs">{val !== null ? typeof val === 'number' && !Number.isInteger(val) ? val.toFixed(2) : val : "N/A"}</span>
-                    </div>
-                  ))}
-                </div>
-              ) : (
-                <p className="text-zinc-600 font-mono text-xs uppercase tracking-widest">No Vector Data</p>
-              )}
-            </div>
-
-            {/* Form Flags */}
-            <div className="p-12 bg-black">
-              <h2 className="text-[10px] uppercase tracking-[0.2em] font-bold text-zinc-600 border-b border-zinc-900 pb-6 mb-8 flex items-center">
-                <span className="text-white mr-4">02 //</span> Structural Flags
-              </h2>
-              {results.form_flags ? (
-                <div className="space-y-6">
-                  {Object.entries(results.form_flags).map(([key, val]) => (
-                    <div key={key} className="flex items-center text-sm font-mono tracking-wide">
-                      {val === true ? (
-                        <span className="w-2 h-2 rounded-full bg-white mr-6 shadow-[0_0_10px_white]"></span>
-                      ) : val === false ? (
-                        <span className="w-2 h-2 rounded-full bg-zinc-800 mr-6"></span>
-                      ) : (
-                        <span className="w-2 h-2 rounded-full border border-zinc-800 mr-6"></span>
-                      )}
-                      <span className={`uppercase text-[10px] mr-auto ${val === true ? 'text-white' : 'text-zinc-600'}`}>{key.replace(/_/g, ' ')}</span>
-                      <span className={`text-[10px] uppercase tracking-widest ${val === true ? 'text-white font-bold' : 'text-zinc-700'}`}>
-                        {val === true ? "Critical" : val === false ? "Optimal" : "Null"}
-                      </span>
-                    </div>
-                  ))}
-                </div>
-              ) : (
-                <p className="text-zinc-600 font-mono text-xs uppercase tracking-widest">No Flag Data</p>
-              )}
-            </div>
-          </div>
-
-          <div className="mt-16 text-center text-[10px] uppercase tracking-widest font-mono text-zinc-600 border-t border-zinc-900 pt-8">
-            Task Finished: {results.processing_time_ms}ms
-          </div>
-        </div>
-      </div>
-    );
-  }
 
   // ----- Upload View -----
   return (
