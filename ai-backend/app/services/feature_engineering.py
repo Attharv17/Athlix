@@ -187,17 +187,14 @@ def predict_risk(features: BiomechanicalFeatures) -> float:
 
 
 def _compute_fatigue_score(training_load: float, sleep_hours: float) -> float:
-    """load / sleep_hours, clamped to [0, 100]. Higher = more fatigued."""
     return round(min(training_load / sleep_hours, 100.0), 4)
 
 
 def _compute_recovery_score(training_load: float, sleep_hours: float) -> float:
-    """sleep_hours / load, normalised to [0, 1]. Higher = better recovered."""
     return round(min(sleep_hours / training_load, 1.0), 4)
 
 
 def _compute_form_decay_rate(sets: List[SetSnapshot]) -> Optional[float]:
-    """Mean per-set change in back_angle. Positive = worsening forward lean."""
     readings = sorted(
         [(s.set_index, s.back_angle) for s in sets if s.back_angle is not None],
         key=lambda t: t[0],
@@ -231,30 +228,6 @@ def generate_feature_vector(
     pose_data: PoseDetectionResponse,
     fatigue_input: FatigueInput,
 ) -> FeatureVector:
-    """
-    Combine pose angle output and fatigue inputs into a single flat,
-    ML-ready feature vector.
-
-    Parameters
-    ----------
-    pose_data : PoseDetectionResponse
-        Response from detect_pose() — provides knee_angle, hip_angle, back_angle.
-    fatigue_input : FatigueInput
-        training_load, sleep_hours, optional set history.
-
-    Returns
-    -------
-    FeatureVector
-        {
-            "knee_angle":      float | null,
-            "hip_angle":       float | null,
-            "back_angle":      float | null,
-            "fatigue_score":   float,
-            "recovery_score":  float,
-            "load":            float,
-            "form_decay_rate": float | null
-        }
-    """
     angles = pose_data.angles
 
     fatigue_score  = _compute_fatigue_score(fatigue_input.training_load, fatigue_input.sleep_hours)
