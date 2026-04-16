@@ -47,6 +47,46 @@ class Landmark(BaseModel):
     visibility: float = Field(0.0, ge=0.0, le=1.0, description="Landmark detection confidence [0, 1].")
 
 
+class PoseLandmarkItem(BaseModel):
+    """
+    Compact landmark representation for the ``/detect-pose`` endpoint.
+    Matches the specified output contract exactly::
+
+        {"id": 0, "name": "NOSE", "x": 0.5, "y": 0.3, "z": -0.02,
+         "visibility": 0.99}
+    """
+
+    id: int   = Field(..., ge=0, le=32, description="BlazePose landmark index (0–32).")
+    name: str = Field(..., description="Human-readable landmark name (e.g. 'LEFT_KNEE').")
+    x: float  = Field(..., description="Horizontal position, normalised to [0, 1] relative to image width.")
+    y: float  = Field(..., description="Vertical position, normalised to [0, 1] relative to image height.")
+    z: float  = Field(..., description="Depth relative to hip centre (MediaPipe convention). Can be negative.")
+    visibility: float = Field(..., ge=0.0, le=1.0, description="Detection confidence for this landmark [0, 1].")
+
+
+class PoseDetectionResponse(BaseModel):
+    """
+    Response shape for ``POST /detect-pose``.
+
+    Example::
+
+        {
+          "pose_detected": true,
+          "landmark_count": 33,
+          "processing_time_ms": 52.4,
+          "landmarks": [
+            {"id": 0, "name": "NOSE", "x": 0.51, "y": 0.12, "z": -0.01, "visibility": 0.98},
+            ...
+          ]
+        }
+    """
+
+    pose_detected: bool
+    landmark_count: int            = Field(..., description="Number of landmarks returned (0 if no pose detected).")
+    processing_time_ms: float      = Field(..., description="Server-side inference time in milliseconds.")
+    landmarks: List[PoseLandmarkItem] = Field(default_factory=list)
+
+
 class JointAngles(BaseModel):
     """Calculated biomechanical angles (degrees) for a single frame."""
 

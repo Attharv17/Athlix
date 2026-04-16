@@ -17,6 +17,7 @@ from fastapi.responses import JSONResponse
 
 from app.models.schemas import HealthResponse
 from app.routes.upload_route import router as upload_router
+from app.routes.pose_route   import router as pose_router
 
 # ---------------------------------------------------------------------------
 # Logging configuration
@@ -31,17 +32,18 @@ logger = logging.getLogger(__name__)
 # ---------------------------------------------------------------------------
 # Application metadata
 # ---------------------------------------------------------------------------
-APP_VERSION = "0.1.0"
+APP_VERSION = "0.2.0"
 APP_TITLE   = "Athlix — AI Injury Prediction API"
 APP_DESC    = """
 ## Overview
 Backend service for the **Athlix** AI-powered sports injury prediction system.
 
-### Capabilities (v0.1)
-- Upload a **single image frame** → receive detected pose landmarks and joint angles.
-- Upload a **video file**         → receive per-frame landmarks and biomechanical features.
+### Capabilities (v0.2)
+- ``POST /detect-pose``   — Upload a **single image** → receive all 33 BlazePose body landmarks with ``(x, y, z)`` coordinates.
+- ``POST /upload/frame``  — Upload an image → landmarks **plus** joint angles and biomechanical features.
+- ``POST /upload/video``  — Upload a video  → per-frame landmarks and engineered feature vectors.
 
-### Upcoming (v0.2)
+### Upcoming (v0.3)
 - ML model inference for real injury-risk scoring.
 - WebSocket streaming for real-time pose analysis.
 - Athlete session history and longitudinal risk tracking.
@@ -74,6 +76,7 @@ def create_app() -> FastAPI:
     )
 
     # ── Routers ─────────────────────────────────────────────────────────────
+    app.include_router(pose_router)
     app.include_router(upload_router)
 
     # ── Startup / shutdown events ────────────────────────────────────────────
@@ -97,7 +100,7 @@ def create_app() -> FastAPI:
         return HealthResponse(
             status="ok",
             version=APP_VERSION,
-            ml_model_loaded=False,   # Update to True once model.pkl is loaded
+            ml_model_loaded=False,  # Update to True once model.pkl is loaded
         )
 
     # ── Root ─────────────────────────────────────────────────────────────────
