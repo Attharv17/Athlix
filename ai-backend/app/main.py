@@ -10,6 +10,15 @@ from app.models.schemas import HealthResponse
 from app.routes.fatigue_route  import router as fatigue_router
 from app.routes.risk_route     import router as risk_router
 from app.routes.process_route  import router as process_router
+from fastapi.middleware.cors import CORSMiddleware
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],  # or your frontend URL later
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 logging.basicConfig(
     level=logging.INFO,
