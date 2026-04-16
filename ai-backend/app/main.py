@@ -58,9 +58,8 @@ def create_app() -> FastAPI:
             _ML_READY = True
             logger.info("ML models and scaler loaded and cached successfully.")
         except Exception as exc:
-            logger.critical("ML models could not be loaded: %s.", exc)
-            import sys
-            sys.exit(1)
+            logger.critical("ML models could not be loaded: %s. Continuing in degraded mode.", exc)
+            _ML_READY = False
 
     @app.on_event("shutdown")
     async def on_shutdown() -> None:

@@ -281,31 +281,11 @@ def analyze_video_form(video_path: str) -> float:
 
                 processed_count += 1
 
-                # Visual Debug Step: CV2 Draw and Imshow
                 rgb = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
                 landmarks = svc.process_frame(rgb)
                 
-                # Visual debug drawing
-                temp_bgr = frame.copy()
-                if landmarks:
-                    from mediapipe.python.solutions import drawing_utils, pose as mp_pose
-                    # Manually recreating landmark struct to draw
-                    # (In a real app, use the svc raw result, here we just do a quick debug display if needed)
-                    # We'll just print first keypoints instead for server-safe visual debug
-                    if processed_count == 1:
-                        print(f"\n[DEBUG] POSE DETECTED FIRST FRAME: {len(landmarks)} keypoints")
-                        print(f"[DEBUG] First point: {landmarks[0].name} -> ({landmarks[0].x}, {landmarks[0].y})")
-                        
-                    cv2.putText(temp_bgr, "Pose Detected", (50, 50), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 255, 0), 2)
-                    try:
-                        cv2.imshow("Video Debug", temp_bgr)
-                        cv2.waitKey(1)
-                    except:
-                        pass # Ignore if headless
-                else:
-                    if processed_count == 1: print("\n[DEBUG] NO POSE DETECTED")
-
                 if not landmarks:
+                    if processed_count == 1: print("\n[DEBUG] NO POSE DETECTED")
                     continue
 
                 # Build a name → landmark lookup for this frame

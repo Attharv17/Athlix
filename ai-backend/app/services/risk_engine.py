@@ -62,7 +62,7 @@ def init_models() -> None:
     if os.path.exists(scaler_path):
         _MODEL_CACHE["scaler"] = joblib.load(scaler_path)
     else:
-        raise FileNotFoundError(f"Scaler not found at {scaler_path}")
+        logger.warning(f"Legacy Scaler not found at {scaler_path}. System will fall back to rule-based logic and new ML model.")
 
 def _load_model(name: str = "xgboost"):
     if name in _MODEL_CACHE:
@@ -154,6 +154,27 @@ def _apply_fusion(
     adjusted = float(np.clip(model_score + delta, 0.0, 100.0))
     return adjusted, delta, flags
 
+import joblib
+
+def predict_risk(features: dict) -> float:
+    try:
+        model = joblib.load("model.pkl")
+        # Ensure correct order: knee_std, hip_std, back_std, depth, smoothness
+        inp = [[
+            features.get("knee_std", 0.0),
+            features.get("hip_std", 0.0),
+            features.get("back_std", 0.0),
+            features.get("depth_score", features.get("depth", 0.0)),
+            features.get("smoothness_score", features.get("smoothness", 0.0))
+        ]]
+        probs = model.predict_proba(inp)[0]
+        # prob of bad form (class 1)
+        prob = probs[1] if len(probs) > 1 else 0.0
+        return float(prob * 100.0)
+    except Exception as e:
+        print(f"Warning: ML predict_risk failed ({e}), defaulting to 50.")
+        return 50.0
+
 
 def get_risk_score(
     input_features: dict,
@@ -169,14 +190,17 @@ def get_risk_score(
 
     feat_cols  = [c for c in eng_df.columns if c != "injury_risk"]
 
+    model_score = 0.0
     scaler = _MODEL_CACHE.get("scaler")
-    if not scaler:
-        raise RuntimeError("Scaler not loaded. Server must be restarted with scaler.pkl present.")
-
-    X = scaler.transform(eng_df[feat_cols])
-
-    model       = _load_model(model_name)
-    model_score = float(np.clip(model.predict(X)[0], 0.0, 100.0))
+    if scaler:
+        try:
+            X = scaler.transform(eng_df[feat_cols])
+            model = _load_model(model_name)
+            model_score = float(np.clip(model.predict(X)[0], 0.0, 100.0))
+        except Exception as e:
+            logger.warning(f"Legacy model prediction failed: {e}. Fallback triggered.")
+    else:
+        logger.debug("Skipping legacy model prediction (scaler missing).")
 
     # ------------------------------------------------------------------
     # Direct weighted formula — form_decay gets 50% of the weight so
@@ -207,10 +231,14 @@ def get_risk_score(
         
     direct_score = float(np.clip(direct_score, 0.0, 100.0))
 
-    # Blend: 35% ML model (generalisation) + 65% direct formula (form sensitivity)
-    blended_score = float(np.clip(0.35 * model_score + 0.65 * direct_score, 0.0, 100.0))
-
-    final_score, delta, flags = _apply_fusion(blended_score, features)
+    # Task Integration: Real-Time dataset model output
+    model_output = predict_risk(features)
+    rule_based_risk = direct_score
+    
+    # 0.6 * model + 0.4 * rule
+    weighted_score = 0.6 * model_output + 0.4 * rule_based_risk
+    
+    final_score, delta, flags = _apply_fusion(weighted_score, features)
     
     import random
     final_score += random.uniform(-3.0, 3.0)
