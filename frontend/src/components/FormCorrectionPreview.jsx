@@ -1,50 +1,11 @@
 import { useState } from "react";
-
-// ─── Focused joint data: only squat-relevant lower-body chain ──────
-// Coordinates normalized within an 80×100 SVG viewBox.
-// Structured for easy backend replacement.
-const DEFAULT_ORIGINAL_POSE = {
-  shoulder: { x: 38, y: 22 },
-  hip:      { x: 36, y: 44 },
-  knee:     { x: 30, y: 65 },
-  ankle:    { x: 28, y: 88 },
-};
-
-const DEFAULT_CORRECTED_POSE = {
-  shoulder: { x: 40, y: 20 },
-  hip:      { x: 38, y: 48 },
-  knee:     { x: 30, y: 68 },
-  ankle:    { x: 28, y: 88 },
-};
-
-// Focused limb chain: shoulder → hip → knee → ankle
-const LIMB_CHAIN = [
-  ["shoulder", "hip"],
-  ["hip", "knee"],
-  ["knee", "ankle"],
-];
-
-// Labels keyed to form_flags, anchored to corrected joints
-const CORRECTION_LABELS = {
-  knee_valgus: {
-    label: "Knee tracking corrected",
-    joint: "knee",
-  },
-  incomplete_depth: {
-    label: "Depth improved",
-    joint: "hip",
-  },
-  excessive_forward_lean: {
-    label: "Torso uprighted",
-    joint: "shoulder",
-  },
-};
+import { getExerciseConfig } from "../data/exerciseConfigs";
 
 // ─── Single-chain skeleton renderer ────────────────────────────────
-function ChainSkeleton({ pose, color, opacity, strokeWidth, jointRadius }) {
+function ChainSkeleton({ pose, limbChain, color, opacity, strokeWidth, jointRadius }) {
   return (
     <g opacity={opacity}>
-      {LIMB_CHAIN.map(([a, b], i) => {
+      {limbChain.map(([a, b], i) => {
         const from = pose[a];
         const to = pose[b];
         if (!from || !to) return null;
@@ -72,20 +33,27 @@ function ChainSkeleton({ pose, color, opacity, strokeWidth, jointRadius }) {
 }
 
 // ═══════════════════════════════════════════════════════════════════
-// MAIN COMPONENT
+// MAIN COMPONENT — exercise-aware
 // ═══════════════════════════════════════════════════════════════════
 export default function FormCorrectionPreview({
-  originalPose = DEFAULT_ORIGINAL_POSE,
-  correctedPose = DEFAULT_CORRECTED_POSE,
-  formFlags = { knee_valgus: true, incomplete_depth: true, excessive_forward_lean: false },
+  exerciseType = "squat",
+  formFlags = {},
 }) {
-  const [view, setView] = useState("both"); // "original" | "corrected" | "both"
+  const [view, setView] = useState("both");
+
+  const config = getExerciseConfig(exerciseType);
+  const poseConfig = config.correctionPose;
+
+  const originalPose = poseConfig.original;
+  const correctedPose = poseConfig.corrected;
+  const limbChain = poseConfig.limbChain;
+  const labels = poseConfig.labels;
 
   const showOriginal = view === "original" || view === "both";
   const showCorrected = view === "corrected" || view === "both";
 
   // Active correction labels based on flags
-  const activeLabels = Object.entries(CORRECTION_LABELS)
+  const activeLabels = Object.entries(labels)
     .filter(([flag]) => formFlags?.[flag])
     .map(([, cfg]) => cfg);
 
@@ -95,7 +63,7 @@ export default function FormCorrectionPreview({
       <div className="flex items-center justify-between mb-6">
         <div>
           <h3 className="text-xl font-bold tracking-tight">Form Correction Preview</h3>
-          <p className="text-zinc-500 text-sm font-medium mt-1">Lower-body kinematic chain</p>
+          <p className="text-zinc-500 text-sm font-medium mt-1">{poseConfig.subtitle}</p>
         </div>
 
         {/* Segmented toggle */}
@@ -131,6 +99,7 @@ export default function FormCorrectionPreview({
           {showOriginal && (
             <ChainSkeleton
               pose={originalPose}
+              limbChain={limbChain}
               color="#ff453a"
               opacity={0.25}
               strokeWidth={1.5}
@@ -143,6 +112,7 @@ export default function FormCorrectionPreview({
             <>
               <ChainSkeleton
                 pose={correctedPose}
+                limbChain={limbChain}
                 color="#30d158"
                 opacity={0.85}
                 strokeWidth={2.5}

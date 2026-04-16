@@ -2,8 +2,8 @@ import { mockAnalysisData } from '../data/mockAnalysisData';
 
 export const api = {
   /**
-   * Simulates fetching analysis results from the backend.
-   * Replaces real API call for the frontend MVP phase.
+   * Returns analysis results from localStorage (set by analyzeMovement).
+   * Falls back to squat-specific mockAnalysisData only if no analysis has been run.
    */
   async getAnalysisResults() {
     // Simulate a brief network delay

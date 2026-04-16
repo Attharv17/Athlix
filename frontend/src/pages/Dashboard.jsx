@@ -82,7 +82,7 @@ function Dashboard() {
                   </div>
 
                   <div>
-                    <h3 className="text-3xl font-black text-white uppercase tracking-tighter mb-4 group-hover:text-zinc-300 transition line-clamp-2">Gym:<br />Squat</h3>
+                    <h3 className="text-3xl font-black text-white uppercase tracking-tighter mb-4 group-hover:text-zinc-300 transition line-clamp-2">Gym:<br />Exercises</h3>
                     <p className="text-zinc-500 text-sm font-light leading-relaxed mb-8">
                       Full-body biomechanical tracking. Detecting depth, forward lean, and varus collapse under load.
                     </p>

@@ -1,7 +1,8 @@
 import { useState, useEffect } from "react";
 import { useNavigate, Link } from "react-router-dom";
 
-import { analyzeVideo } from "../services/analysisService";
+import { analyzeMovement } from "../services/analysisService";
+import { EXERCISE_CONFIGS } from "../data/exerciseConfigs";
 
 function Upload() {
   const navigate = useNavigate();
@@ -91,7 +92,7 @@ function Upload() {
     };
 
     try {
-      await analyzeVideo(selectedFile, { profile, sessionContext });
+      await analyzeMovement(selectedFile, { profile, sessionContext }, movementType);
       navigate('/analysis');
     } catch (err) {
       setError(err.message);
@@ -175,30 +176,26 @@ function Upload() {
               <h2 className="text-[10px] uppercase tracking-[0.2em] font-bold text-zinc-600 mb-6 flex items-center">
                 <span className="text-white mr-4">02 //</span> Select Protocol
               </h2>
-              <div className="grid sm:grid-cols-2 gap-px bg-zinc-900 border border-zinc-900">
-                <div
-                  onClick={() => setMovementType('squat')}
-                  className={`p-8 cursor-pointer transition-colors ${movementType === 'squat' ? 'bg-[#111]' : 'bg-black hover:bg-[#050505]'}`}
-                >
-                  <div className="flex justify-between items-start mb-6">
-                    <h3 className={`font-bold uppercase tracking-widest text-sm ${movementType === 'squat' ? 'text-white' : 'text-zinc-500'}`}>Protocol: Squat</h3>
-                    {movementType === 'squat' && (
-                      <span className="flex h-1.5 w-1.5 rounded-full bg-white shadow-[0_0_10px_white] animate-pulse"></span>
-                    )}
+              <div className="grid sm:grid-cols-3 gap-px bg-zinc-900 border border-zinc-900">
+                {Object.entries(EXERCISE_CONFIGS).map(([key, cfg]) => (
+                  <div
+                    key={key}
+                    onClick={() => setMovementType(key)}
+                    className={`p-8 cursor-pointer transition-colors ${movementType === key ? 'bg-[#111]' : 'bg-black hover:bg-[#050505]'}`}
+                  >
+                    <div className="flex justify-between items-start mb-6">
+                      <h3 className={`font-bold uppercase tracking-widest text-sm ${movementType === key ? 'text-white' : 'text-zinc-500'}`}>
+                        {cfg.displayName}
+                      </h3>
+                      {movementType === key && (
+                        <span className="flex h-1.5 w-1.5 rounded-full bg-white shadow-[0_0_10px_white] animate-pulse" />
+                      )}
+                    </div>
+                    <p className={`text-xs font-light leading-relaxed ${movementType === key ? 'text-zinc-400' : 'text-zinc-600'}`}>
+                      {cfg.description}
+                    </p>
                   </div>
-                  <p className={`text-xs font-light leading-relaxed ${movementType === 'squat' ? 'text-zinc-400' : 'text-zinc-600'}`}>
-                    Active model ready. Evaluating squat depth and varus deviations.
-                  </p>
-                </div>
-                <div className="p-8 bg-black opacity-50 relative cursor-not-allowed">
-                  <div className="flex justify-between items-start mb-6">
-                    <h3 className="font-bold uppercase tracking-widest text-sm text-zinc-600">Protocol: Fast Bowler</h3>
-                    <span className="text-[8px] font-bold tracking-widest uppercase border border-zinc-800 px-2 py-0.5 text-zinc-600">Locked</span>
-                  </div>
-                  <p className="text-xs text-zinc-600 font-light leading-relaxed">
-                    Preview module. Not available for generic data upload yet.
-                  </p>
-                </div>
+                ))}
               </div>
             </div>
 
