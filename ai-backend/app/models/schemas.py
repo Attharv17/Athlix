@@ -64,6 +64,45 @@ class PoseLandmarkItem(BaseModel):
     visibility: float = Field(..., ge=0.0, le=1.0, description="Detection confidence for this landmark [0, 1].")
 
 
+class AngleResult(BaseModel):
+    """
+    The three primary biomechanical angles computed for a frame.
+
+    All values are in **degrees** and may be ``None`` if the required
+    landmarks were not detected with sufficient confidence.
+
+    Example::
+
+        {
+          "knee_angle": 162.3,
+          "hip_angle":  174.7,
+          "back_angle":   8.1
+        }
+    """
+
+    knee_angle: Optional[float] = Field(
+        None,
+        description=(
+            "Knee flexion angle (hip→knee→ankle), averaged left & right. "
+            "~180° = fully extended, ~40° = deep squat."
+        ),
+    )
+    hip_angle: Optional[float] = Field(
+        None,
+        description=(
+            "Hip flexion angle (shoulder→hip→knee), averaged left & right. "
+            "~180° = standing upright, ~60° = deep squat."
+        ),
+    )
+    back_angle: Optional[float] = Field(
+        None,
+        description=(
+            "Trunk inclination angle relative to vertical "
+            "(0° = upright, 90° = horizontal lean)."
+        ),
+    )
+
+
 class PoseDetectionResponse(BaseModel):
     """
     Response shape for ``POST /detect-pose``.
@@ -77,14 +116,23 @@ class PoseDetectionResponse(BaseModel):
           "landmarks": [
             {"id": 0, "name": "NOSE", "x": 0.51, "y": 0.12, "z": -0.01, "visibility": 0.98},
             ...
-          ]
+          ],
+          "angles": {
+            "knee_angle": 162.3,
+            "hip_angle": 174.7,
+            "back_angle": 8.1
+          }
         }
     """
 
     pose_detected: bool
-    landmark_count: int            = Field(..., description="Number of landmarks returned (0 if no pose detected).")
-    processing_time_ms: float      = Field(..., description="Server-side inference time in milliseconds.")
+    landmark_count: int               = Field(..., description="Number of landmarks returned (0 if no pose detected).")
+    processing_time_ms: float         = Field(..., description="Server-side inference time in milliseconds.")
     landmarks: List[PoseLandmarkItem] = Field(default_factory=list)
+    angles: Optional[AngleResult]     = Field(
+        None,
+        description="Computed joint angles. Null when no pose is detected.",
+    )
 
 
 class JointAngles(BaseModel):

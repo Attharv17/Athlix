@@ -33,7 +33,8 @@ import cv2
 import mediapipe as mp
 import numpy as np
 
-from app.models.schemas import Landmark, PoseLandmarkItem, PoseDetectionResponse
+from app.models.schemas import AngleResult, Landmark, PoseLandmarkItem, PoseDetectionResponse
+from app.utils.angle_utils import compute_all_angles
 
 logger = logging.getLogger(__name__)
 
@@ -231,9 +232,21 @@ def detect_pose(image_bytes: bytes) -> PoseDetectionResponse:
         )
 
     landmark_items = _parse_landmarks_to_items(results.pose_landmarks)
+
+    # --- Compute joint angles from the detected landmarks ----------------------
+    raw_angles = compute_all_angles(landmark_items)
+    angles = AngleResult(
+        knee_angle=raw_angles["knee_angle"],
+        hip_angle=raw_angles["hip_angle"],
+        back_angle=raw_angles["back_angle"],
+    )
+
     logger.info(
-        "detect_pose: %d landmarks detected (%.1f ms).",
+        "detect_pose: %d landmarks detected, angles=knee:%.1f hip:%.1f back:%.1f (%.1f ms).",
         len(landmark_items),
+        raw_angles["knee_angle"] or 0.0,
+        raw_angles["hip_angle"]  or 0.0,
+        raw_angles["back_angle"] or 0.0,
         elapsed_ms,
     )
 
@@ -242,6 +255,7 @@ def detect_pose(image_bytes: bytes) -> PoseDetectionResponse:
         landmark_count=len(landmark_items),
         processing_time_ms=round(elapsed_ms, 2),
         landmarks=landmark_items,
+        angles=angles,
     )
 
 
