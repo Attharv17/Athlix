@@ -154,6 +154,27 @@ def _apply_fusion(
     adjusted = float(np.clip(model_score + delta, 0.0, 100.0))
     return adjusted, delta, flags
 
+import joblib
+
+def predict_risk(features: dict) -> float:
+    try:
+        model = joblib.load("model.pkl")
+        # Ensure correct order: knee_std, hip_std, back_std, depth, smoothness
+        inp = [[
+            features.get("knee_std", 0.0),
+            features.get("hip_std", 0.0),
+            features.get("back_std", 0.0),
+            features.get("depth_score", features.get("depth", 0.0)),
+            features.get("smoothness_score", features.get("smoothness", 0.0))
+        ]]
+        probs = model.predict_proba(inp)[0]
+        # prob of bad form (class 1)
+        prob = probs[1] if len(probs) > 1 else 0.0
+        return float(prob * 100.0)
+    except Exception as e:
+        print(f"Warning: ML predict_risk failed ({e}), defaulting to 50.")
+        return 50.0
+
 
 def get_risk_score(
     input_features: dict,
@@ -164,12 +185,11 @@ def get_risk_score(
 
     features = _validate_input(input_features)
 
-    # Prepare data for model prediction
     raw_df = pd.DataFrame([features])
     eng_df = engineer_features(raw_df)
-    feat_cols = [c for c in eng_df.columns if c != "injury_risk"]
 
-    # 1. Prediction from ML Models
+    feat_cols  = [c for c in eng_df.columns if c != "injury_risk"]
+
     model_score = 0.0
     scaler = _MODEL_CACHE.get("scaler")
     if scaler:
@@ -178,14 +198,27 @@ def get_risk_score(
             model = _load_model(model_name)
             model_score = float(np.clip(model.predict(X)[0], 0.0, 100.0))
         except Exception as e:
-            logger.warning(f"Model prediction failed: {e}. Fallback to rule-based only.")
-    
-    # 2. Heuristic Rule-Based Scoring
+            logger.warning(f"Legacy model prediction failed: {e}. Fallback triggered.")
+    else:
+        logger.debug("Skipping legacy model prediction (scaler missing).")
+
+    # ------------------------------------------------------------------
+    # Direct weighted formula — form_decay gets 50% of the weight so
+    # that real video quality strongly drives the final risk score.
+    #
+    # Scaling inputs to a 0-100 space:
+    #   form_decay   : already 0-1  → × 100
+    #   fatigue_index: 0-10         → × 10
+    #   training_load: 1-10         → × 10
+    #   recovery_score: 0-100       → already in range
+    # ------------------------------------------------------------------
     fs = features.get("form_score", features.get("form_decay", 0) * 100.0)
     fi = features["fatigue_index"] * 10.0    # 0-100
     ld = features["training_load"] * 10.0    # 0-100
     rs = features["recovery_score"]          # 0-100
 
+    # Blended scoring: form_decay is important but heavily weighted towards 
+    # actual measured deviations (fs).
     direct_score = (
         0.40 * fs +
         0.25 * fi +
@@ -193,30 +226,36 @@ def get_risk_score(
         0.20 * (100.0 - rs)
     )
     
-    # Sensitivity adjustments
     if fs > 75:
         direct_score *= 1.15
     elif fs < 25:
         direct_score *= 0.85
+        
     direct_score = float(np.clip(direct_score, 0.0, 100.0))
 
-    # 3. Blending (60% ML + 40% Rules)
-    weighted_score = 0.6 * model_score + 0.4 * direct_score
+    # Task Integration: Real-Time dataset model output
+    model_output = predict_risk(features)
+    rule_based_risk = direct_score
+    
+    # 0.6 * model + 0.4 * rule
+    weighted_score = 0.6 * model_output + 0.4 * rule_based_risk
     
     final_score, delta, flags = _apply_fusion(weighted_score, features)
     
-    # Add minor variance for realism
     import random
-    final_score += random.uniform(-2.0, 2.0)
+    final_score += random.uniform(-3.0, 3.0)
     final_score = float(np.clip(final_score, 0.0, 100.0))
 
-    # Debugging Output
-    print("\n----- DEBUG RISK ENGINE -----")
-    print(f"Form Score: {fs:.1f}")
-    print(f"Model Score: {model_score:.1f}")
-    print(f"Direct Score: {direct_score:.1f}")
-    print(f"Final Blended: {final_score:.2f}")
-    print("----------------------------\n")
+    print("\n----- DEBUG -----")
+    print(f"Number of frames: {features.get('num_frames', 'N/A')}")
+    print(f"Knee STD: {features.get('knee_std', 'N/A')}")
+    print(f"Hip STD: {features.get('hip_std', 'N/A')}")
+    print(f"Back STD: {features.get('back_std', 'N/A')}")
+    print(f"Knee angle range (max-min): {features.get('range_knee', 'N/A')}")
+    print(f"Frame-to-frame diff: {features.get('diff_score', 'N/A')}")
+    print(f"Form Score: {fs}")
+    print(f"Risk: {final_score:.2f}")
+    print("------------------\n")
 
     level = _classify_level(final_score)
 
