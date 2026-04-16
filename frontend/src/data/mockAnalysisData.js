@@ -1,12 +1,19 @@
+/**
+ * mockAnalysisData.js
+ *
+ * Last-resort fallback data. Only used when no session context exists.
+ * Includes exerciseType so the Results page can still render correctly.
+ */
 export const mockAnalysisData = {
   score: 82,
+  exerciseType: "squat",
   movement: "Back Squat",
   timestamp: new Date().toISOString(),
   injuryRisk: "ELEVATED",
   keyIssues: [
-    { id: 1, issue: "Incomplete Depth", severity: "High", detail: "Hip crease did not drop below the patella." },
-    { id: 2, issue: "Knee Valgus", severity: "Medium", detail: "Slight medial collapse detected during the concentric phase." },
-    { id: 3, issue: "Heel Rise", severity: "Low", detail: "Left heel lifted 1.2cm at max extension." }
+    { id: 1, issue: "Incomplete Depth", severity: "High", detail: "Hip crease did not drop below the patella.", flag: "incomplete_depth", joints: ["hip"] },
+    { id: 2, issue: "Knee Valgus", severity: "Medium", detail: "Slight medial collapse detected during the concentric phase.", flag: "knee_valgus", joints: ["knee"] },
+    { id: 3, issue: "Heel Rise", severity: "Low", detail: "Left heel lifted 1.2cm at max extension.", flag: "heel_rise", joints: ["ankle"] }
   ],
   decayData: [
     { rep: 1, score: 92 },
@@ -26,5 +33,15 @@ export const mockAnalysisData = {
     { id: 2, action: "Control Deceleration", cue: "Implement a 3-second eccentric phase. Explicitly eliminate bounce out of the hole.", target: "Tendon Load" },
     { id: 3, action: "Active Glute Engagement", cue: "Actively drive knees outward against an imaginary band during the concentric phase.", target: "Knee Tracking" }
   ],
-  summary: "The athlete demonstrates strong eccentric control and rigid torso mechanics, but fails to break parallel. The presence of moderate knee valgus combined with incomplete depth indicates potential weakness in the gluteus medius and poor ankle mobility."
+  summary: "The athlete demonstrates strong eccentric control and rigid torso mechanics, but fails to break parallel. The presence of moderate knee valgus combined with incomplete depth indicates potential weakness in the gluteus medius and poor ankle mobility.",
+  movementVelocity: "0.68",
+  velocityClassification: "Hypertrophy",
+  loadScore: "10.7",
+  relativePct: "71",
+  movementRiskIndex: 38,
+  riskLabel: "Low",
+  riskBreakdown: [],
+  explanationInsight: "Solid movement pattern under acceptable relative load.",
+  weightUsed: 100,
+  maxPR: 140,
 };

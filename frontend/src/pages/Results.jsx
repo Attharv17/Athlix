@@ -418,7 +418,7 @@ function Results() {
                   </svg>
                 </div>
                 <div className="absolute bottom-3 right-3 bg-black/60 backdrop-blur-md px-3 py-1.5 rounded-full">
-                  <span className="text-xs font-bold text-white">Score: 92</span>
+                  <span className="text-xs font-bold text-white">Score: {mockData.decayData[0]?.score || '--'}</span>
                 </div>
               </div>
             </div>
@@ -442,7 +442,7 @@ function Results() {
                   </div>
                 </div>
                 <div className="absolute bottom-3 right-3 bg-black/60 backdrop-blur-md px-3 py-1.5 rounded-full border border-[#ff3b30]/30">
-                  <span className="text-xs font-bold text-[#ff3b30]">Score: 72</span>
+                  <span className="text-xs font-bold text-[#ff3b30]">Score: {dropIdx >= 0 ? mockData.decayData[dropIdx].score : '--'}</span>
                 </div>
               </div>
             </div>
@@ -452,11 +452,13 @@ function Results() {
         {/* ─── Form Correction Preview ─────────────────────────── */}
         <FadeSection delay={350}>
           <FormCorrectionPreview
-            formFlags={{
-              knee_valgus: mockData.keyIssues?.some(i => i.issue === 'Knee Valgus'),
-              incomplete_depth: mockData.keyIssues?.some(i => i.issue === 'Incomplete Depth'),
-              excessive_forward_lean: mockData.keyIssues?.some(i => i.issue === 'Excessive Forward Lean'),
-            }}
+            exerciseType={mockData.exerciseType || 'squat'}
+            formFlags={
+              mockData.keyIssues?.reduce((flags, issue) => {
+                if (issue.flag) flags[issue.flag] = true;
+                return flags;
+              }, {}) || {}
+            }
           />
         </FadeSection>
 
